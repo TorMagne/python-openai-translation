@@ -21,7 +21,7 @@ migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'index'
+login_manager.login_view = 'login'
 
 
 @login_manager.user_loader
@@ -54,7 +54,7 @@ class Users(db.Model, UserMixin):
 
 # login page
 @app.route("/", methods=['GET', 'POST'])
-def index():
+def login():
     form = LoginForm()
     email = None
     password = None
@@ -79,7 +79,7 @@ def index():
     else:
         errors = form.errors
 
-    return render_template('index.html',
+    return render_template('login.html',
                            form=form,
                            email=email,
                            password=password,
@@ -93,7 +93,7 @@ def index():
 def logout():
     logout_user()
     flash("You have been logged out!")
-    return redirect(url_for('index'))
+    return redirect(url_for('login'))
 
 
 @app.route("/register", methods=['GET', 'POST'])
