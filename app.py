@@ -79,7 +79,7 @@ def login():
     else:
         errors = form.errors
 
-    return render_template('login.html',
+    return render_template('auth/login.html',
                            form=form,
                            email=email,
                            password=password,
@@ -130,7 +130,7 @@ def register():
     else:
         errors = form.errors
 
-    return render_template('register.html', form=form, email=email, password=password, errors=errors, users=users)
+    return render_template('auth/register.html', form=form, email=email, password=password, errors=errors, users=users)
 
 
 @app.route("/delete_user/<int:user_id>", methods=['POST'])
