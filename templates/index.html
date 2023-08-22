@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html data-theme="mytheme" lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet" />
+    <!-- google font Roboto -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>Document</title>
+    <link href="{{ url_for('static', filename='css/tailwind-output.css')}}" rel="stylesheet" />
+  </head>
+  <body class="bg-[#181a1e] h-screen grid place-content-center font-Roboto">
+    <!-- Alert -->
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %}
+    <div class="alert alert-info absolute top-0 rounded-none">
+      {% for category, message in messages %}
+      <span> {{message}} </span>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
+    <!-- Alert -->
+
+    <main>
+      <form method="POST" novalidate>
+        <div class="card w-96 bg-[#202528] shadow-xl">
+          <div class="card-body">
+            {{ form.hidden_tag() }}
+            <div class="form-control w-full max-w-xs">
+              <label class="label">
+                <span class="label-text">Email</span>
+              </label>
+              {{ form.email(class="input input-bordered input-primary w-full max-w-xs" ) }} {% if
+              form.email.errors %}
+              <div class="bg-error rounded-md mt-4">
+                {% for error in form.email.errors %}
+                <p class="text-white py-2 pl-4">{{ error }}</p>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="form-control w-full max-w-xs">
+              <label class="label">
+                <span class="label-text">Password</span>
+              </label>
+              {{ form.password(class="input input-bordered input-primary w-full max-w-xs" ) }} {% if
+              form.password.errors %}
+              <div class="bg-error rounded-md mt-4">
+                {% for error in form.password.errors %}
+                <p class="text-white py-2 pl-4">{{ error }}</p>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="justify-start mt-4">{{ form.submit(class="btn btn-primary") }}</div>
+          </div>
+        </div>
+      </form>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404</title>
+    <link href="{{ url_for('static', filename='css/tailwind-output.css')}}" rel="stylesheet" />
+  </head>
+  <body class="bg-[#181a1e]">
+    <main class="h-screen grid place-content-center font-Roboto container mx-auto px-4">
+      <h1 class="text-center text-9xl">404</h1>
+      <p class="mt-4 text-2xl">
+        404 Error: We searched high and low, but it seems this page is on vacation. Maybe it's
+        sipping bits and bytes on a digital beach somewhere. Let's head back to civilization and
+        find what you need!
+      </p>
+      <div class="mt-8 text-xl">
+        <a class="btn btn-primary" href="{{url_for('index')}}">You feeling lucky?</a>
+      </div>
+    </main>
+  </body>
+</html>

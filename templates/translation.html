@@ -1,0 +1,51 @@
+{%extends 'base.html'%} {%block content%}
+<main class="container mx-auto px-4">
+  <div class="card w-full bg-[#202528]">
+    <div class="card-body">
+      <!-- document language translate from-->
+      <div class="form-control w-full max-w-xs">
+        <label class="label">
+          <span class="label-text">Select document language</span>
+        </label>
+        <select class="select select-bordered select-primary" id="languageToTranslateFrom">
+          <option>Star Wars</option>
+          <option>Harry Potter</option>
+          <option>Lord of the Rings</option>
+          <option>Planet of the Apes</option>
+          <option>Star Trek</option>
+        </select>
+      </div>
+      <!-- document language translate to-->
+      <div class="form-control w-full max-w-xs">
+        <label class="label">
+          <span class="label-text">Select languages to translate to</span>
+        </label>
+        <select class="select select-bordered select-primary" id="languageToTranslateTo">
+          <option>Star Wars</option>
+          <option>Harry Potter</option>
+          <option>Lord of the Rings</option>
+          <option>Planet of the Apes</option>
+          <option>Star Trek</option>
+        </select>
+      </div>
+      <div class="form-control w-full max-w-xs">
+        <label class="label">
+          <span class="label-text">Pick a file</span>
+        </label>
+        <input
+          type="file"
+          class="file-input file-input-bordered file-input-primary w-full max-w-xs"
+        />
+      </div>
+      <p id="selectedValue">Selected Value:</p>
+
+      <div id="selectedValues">
+        <p>selectValues:</p>
+      </div>
+      <!-- <div class="card-actions justify-end">
+          <button class="btn btn-primary">Buy Now</button>
+        </div> -->
+    </div>
+  </div>
+</main>
+{%endblock%}

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html data-theme="mytheme" lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet" />
+    <!-- google font Roboto -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>AdminPanel</title>
+    <link href="{{ url_for('static', filename='css/tailwind-output.css')}}" rel="stylesheet" />
+  </head>
+  <body class="font-Roboto bg-[#181a1e]">
+    <!-- navbar -->
+    <div class="navbar bg-[#181a1e]">
+      <div class="container mx-auto px-4">
+        <div class="flex-none">
+          <label
+            for="my-drawer-2"
+            class="btn btn-primary drawer-button lg:hidden btn-square btn-ghost"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              class="inline-block w-5 h-5 stroke-current"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              ></path>
+            </svg>
+          </label>
+        </div>
+        <div class="flex-1">
+          <a class="btn btn-ghost normal-case text-xl gap-0 pl-0"
+            >&lt;Admin<span class="text-primary">Panel &#47;&gt;</span></a
+          >
+        </div>
+      </div>
+    </div>
+    <!-- drawer -->
+    <div class="drawer lg:drawer-open">
+      <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
+      <div class="drawer-content flex flex-col">
+        <!-- Page content here -->
+        {%block content%} {%endblock%}
+      </div>
+      <div class="drawer-side md:h-[calc(100vh-64px)]">
+        <label for="my-drawer-2" class="drawer-overlay"></label>
+        <ul class="menu p-4 w-80 h-full bg-[#202528] text-base-content">
+          <!-- Sidebar content here -->
+          <li>
+            <a href="{{url_for('dashboard')}}" class="md:text-lg"
+              ><span class="material-icons-sharp"> dashboard </span>Dashboard</a
+            >
+          </li>
+          <li>
+            <a href="{{url_for('translation')}}" class="md:text-lg"
+              ><span class="material-icons-sharp"> translate </span>Translation</a
+            >
+          </li>
+          <a class="btn btn-secondary" href="{{url_for('logout')}}">Logut</a>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
