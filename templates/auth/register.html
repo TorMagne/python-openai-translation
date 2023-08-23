@@ -15,6 +15,21 @@
     <link href="{{ url_for('static', filename='css/tailwind-output.css')}}" rel="stylesheet" />
   </head>
   <body class="bg-[#181a1e] h-screen grid place-content-center font-Roboto">
+    <!-- {% with messages = get_flashed_messages() %} {% for message in messages %}
+    <div class="alert alert-primary" role="alert">{{ message }}</div>
+    {% endfor %} {% endwith %} -->
+
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for
+    category, message in messages %} {% if category == 'error' %}
+    <div class="alert alert-error absolute top-0 rounded-none">
+      <span> {{ message }} </span>
+    </div>
+    {% else %}
+    <div class="alert alert-success absolute top-0 rounded-none">
+      <span> {{ message }} </span>
+    </div>
+    {% endif %} {% endfor %} {% endif %} {% endwith %}
+
     <main>
       <form method="POST" novalidate>
         <div class="card w-96 bg-[#202528] shadow-xl">

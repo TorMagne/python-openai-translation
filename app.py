@@ -70,7 +70,8 @@ def login():
                 login_user(existing_user)
                 return redirect(url_for('dashboard'))
             else:
-                flash("Invalid email or password. Please try again.", 'error')
+                flash("Invalid email or password. Please try again.",
+                      category='error')
 
         except IntegrityError:
             # Handle database integrity errors (e.g., unique constraint violation)
@@ -92,7 +93,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash("You have been logged out!")
+    flash("You have been logged out!", category='success')
     return redirect(url_for('login'))
 
 
@@ -113,7 +114,8 @@ def register():
         try:
             existing_user = Users.query.filter_by(email=email).first()
             if existing_user:
-                print("Email already in use. Please choose another.", 'error')
+                flash("Email already in use. Please choose another.",
+                      category='error')
 
             else:
                 hashed_password = generate_password_hash(password)
@@ -121,13 +123,14 @@ def register():
                     email=email, password_hash=hashed_password, role=selected_role)
                 db.session.add(new_user)
                 db.session.commit()
-                flash("Registration successful. You can now log in.", 'success')
+                flash("Registration successful", category='success')
                 return redirect(url_for('register'))
 
         except IntegrityError:
             # Handle database integrity errors (e.g., unique constraint violation)
             db.session.rollback()  # Rollback the transaction
-            print("An error occurred during registration. Please try again.", 'error')
+            flash(
+                "An error occurred during registration. Please try again.",  category='error')
     else:
         errors = form.errors
 
@@ -146,12 +149,12 @@ def delete_user(user_id):
             # delete the user from db
             db.session.delete(user)
             db.session.commit()
-            print("user deleted")
+            flash("user deleted", category='error')
         else:
-            print("something went wrong")
+            flash("something went wrong")
     except IntegrityError:
         db.session.rollback()  # Rollback the transaction
-        print("something went wrong when deleting the user")
+        flash("something went wrong when deleting the user", category='error')
 
     return redirect(url_for('register'))
 
@@ -160,39 +163,7 @@ def delete_user(user_id):
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    form = RegistrationForm()
-    email = None
-    password = None
-    errors = None
-
-    users = Users.query.all()
-
-    if form.validate_on_submit():
-        email = form.email.data
-        password = form.password.data
-        selected_role = form.role.data
-
-        try:
-            existing_user = Users.query.filter_by(email=email).first()
-            if existing_user:
-                print("Email already in use. Please choose another.", 'error')
-
-            else:
-                hashed_password = generate_password_hash(password)
-                new_user = Users(
-                    email=email, password_hash=hashed_password, role=selected_role)
-                db.session.add(new_user)
-                db.session.commit()
-                return redirect(url_for('register'))
-                flash("Registration successful. You can now log in.", 'success')
-        except IntegrityError:
-            # Handle database integrity errors (e.g., unique constraint violation)
-            db.session.rollback()  # Rollback the transaction
-            print("An error occurred during registration. Please try again.", 'error')
-    else:
-        errors = form.errors
-    users = Users.query.all()
-    return render_template('dashboard.html', form=form, email=email, password=password, errors=errors, users=users)
+    return render_template('dashboard.html', users=users)
 
 
 # translation page
