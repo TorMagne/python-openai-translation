@@ -34,4 +34,4 @@ class RegistrationForm(FlaskForm):
 
     role = SelectField('Role', choices=[('user', 'User'), ('admin', 'Admin')])
 
-    submit = SubmitField('Submit')
+    submit = SubmitField('Register user')

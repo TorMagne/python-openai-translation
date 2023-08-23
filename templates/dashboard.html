@@ -44,7 +44,60 @@
 
   <!-- add user -->
   <section id="addUserSection">
-    <h1>Add user</h1>
+    <form method="POST" novalidate>
+      <div class="card w-full bg-[#202528] shadow-xl">
+        <div class="card-body">
+          {{ form.hidden_tag() }}
+          <div class="form-control w-full max-w-xs">
+            <label class="label">
+              <span class="label-text">Email</span>
+            </label>
+            {{ form.email(class="input input-bordered input-primary w-full max-w-xs", id="email") }}
+            {% if form.email.errors %}
+            <div class="text-error text-sm mt-1">
+              {% for error in form.email.errors %}
+              <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          <div class="form-control w-full max-w-xs">
+            <label class="label">
+              <span class="label-text">Password</span>
+            </label>
+            {{ form.password(class="input input-bordered input-primary w-full max-w-xs",
+            id="password") }} {% if form.password.errors %}
+            <div class="text-error text-sm mt-1">
+              {% for error in form.password.errors %}
+              <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          <div class="form-control w-full max-w-xs">
+            <label class="label">
+              <span class="label-text">Confirm password</span>
+            </label>
+            {{ form.confirm_password(class="input input-bordered input-primary w-full max-w-xs",
+            id="confirm_password") }} {% if form.confirm_password.errors %}
+            <div class="text-error text-sm mt-1">
+              {% for error in form.confirm_password.errors %}
+              <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          <div class="form-control w-full max-w-xs">
+            <label class="label">
+              <span class="label-text">Role</span>
+            </label>
+            {{ form.role(class="select select-bordered select-primary w-full max-w-xs", id="role")
+            }}
+          </div>
+          <div class="mt-6">{{ form.submit(class="btn btn-primary") }}</div>
+        </div>
+      </div>
+    </form>
   </section>
 
   <!-- users -->

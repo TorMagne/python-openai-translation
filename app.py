@@ -96,8 +96,69 @@ def logout():
     return redirect(url_for('login'))
 
 
-@app.route("/register", methods=['GET', 'POST'])
-def register():
+# @app.route("/register", methods=['GET', 'POST'])
+# def register():
+#     form = RegistrationForm()
+#     email = None
+#     password = None
+#     errors = None
+
+#     users = Users.query.all()
+
+#     if form.validate_on_submit():
+#         email = form.email.data
+#         password = form.password.data
+#         selected_role = form.role.data
+
+#         try:
+#             existing_user = Users.query.filter_by(email=email).first()
+#             if existing_user:
+#                 print("Email already in use. Please choose another.", 'error')
+
+#             else:
+#                 hashed_password = generate_password_hash(password)
+#                 new_user = Users(
+#                     email=email, password_hash=hashed_password, role=selected_role)
+#                 db.session.add(new_user)
+#                 db.session.commit()
+#                 return redirect(url_for('register'))
+#                 flash("Registration successful. You can now log in.", 'success')
+#         except IntegrityError:
+#             # Handle database integrity errors (e.g., unique constraint violation)
+#             db.session.rollback()  # Rollback the transaction
+#             print("An error occurred during registration. Please try again.", 'error')
+#     else:
+#         errors = form.errors
+
+#     return render_template('auth/register.html', form=form, email=email, password=password, errors=errors, users=users)
+
+
+@app.route("/delete_user/<int:user_id>", methods=['POST'])
+# @login_required
+def delete_user(user_id):
+    try:
+        # get user from db
+        user = Users.query.get(user_id)
+
+        # check if user exists
+        if user:
+            # delete the user from db
+            db.session.delete(user)
+            db.session.commit()
+            print("user deleted")
+        else:
+            print("something went wrong")
+    except IntegrityError:
+        db.session.rollback()  # Rollback the transaction
+        print("something went wrong when deleting the user")
+
+    return redirect(url_for('dashboard'))
+
+
+# dashboard page
+@app.route("/dashboard", methods=['GET', 'POST'])
+@login_required
+def dashboard():
     form = RegistrationForm()
     email = None
     password = None
@@ -121,8 +182,8 @@ def register():
                     email=email, password_hash=hashed_password, role=selected_role)
                 db.session.add(new_user)
                 db.session.commit()
-                return redirect(url_for('register'))
-                print("Registration successful. You can now log in.", 'success')
+                flash("Registration successful. You can now log in.", 'success')
+                return redirect(url_for('dashboard'))
         except IntegrityError:
             # Handle database integrity errors (e.g., unique constraint violation)
             db.session.rollback()  # Rollback the transaction
@@ -130,37 +191,7 @@ def register():
     else:
         errors = form.errors
 
-    return render_template('auth/register.html', form=form, email=email, password=password, errors=errors, users=users)
-
-
-@app.route("/delete_user/<int:user_id>", methods=['POST'])
-# @login_required
-def delete_user(user_id):
-    try:
-        # get user from db
-        user = Users.query.get(user_id)
-
-        # check if user exists
-        if user:
-            # delete the user from db
-            db.session.delete(user)
-            db.session.commit()
-            print("user deleted")
-        else:
-            print("something went wrong")
-    except IntegrityError:
-        db.session.rollback()  # Rollback the transaction
-        print("something went wrong when deleting the user")
-
-    return redirect(url_for('register'))
-
-
-# dashboard page
-@app.route("/dashboard")
-@login_required
-def dashboard():
-    users = Users.query.all()
-    return render_template('dashboard.html', users=users)
+    return render_template('dashboard.html', form=form, email=email, password=password, errors=errors, users=users)
 
 
 # translation page

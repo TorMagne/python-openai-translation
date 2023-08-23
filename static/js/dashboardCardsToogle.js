@@ -2,6 +2,7 @@ const toggleSection = (sectionId) => {
   const sections = ['addUserSection', 'usersSection', 'card3Section'];
 
   sections.forEach((section) => {
+    console.log(section);
     const element = document.querySelector(`#${section}`);
     const isOpen = section === sectionId;
 
