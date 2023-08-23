@@ -159,7 +159,8 @@ def delete_user(user_id):
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    users = Users.query.all()
+    return render_template('dashboard.html', users=users)
 
 
 # translation page
