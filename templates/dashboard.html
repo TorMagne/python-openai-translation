@@ -1,25 +1,21 @@
 {%extends 'base.html'%} {%block content%}
 <main class="container mx-auto px-4">
   <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-0 md:mb-4">
-    <div
-      class="card w-full bg-[#202528] border border-primary border-dashed cursor-pointer"
-      id="addUserCard"
-    >
-      <div class="card-body">
-        <div class="flex justify-center items-center">
-          <span class="material-icons-sharp text-primary text-5xl"> add </span>
-          <h2 class="card-title text-primary text-3xl">Add User</h2>
+    <a href="{{ url_for('register')}}">
+      <div class="card w-full bg-[#202528] border border-primary border-dashed cursor-pointer">
+        <div class="card-body">
+          <div class="flex justify-center items-center">
+            <span class="material-icons-sharp text-primary text-5xl"> add </span>
+            <h2 class="card-title text-primary text-3xl">Add User</h2>
+          </div>
+          <div class="overflow-x-auto"></div>
+          <!-- <div class="card-actions justify-end">
+                    <button class="btn btn-primary">Buy Now</button>
+                  </div> -->
         </div>
-        <div class="overflow-x-auto"></div>
-        <!-- <div class="card-actions justify-end">
-                  <button class="btn btn-primary">Buy Now</button>
-                </div> -->
       </div>
-    </div>
-    <div
-      class="card w-full bg-[#202528] border border-primary border-dashed cursor-pointer"
-      id="card2"
-    >
+    </a>
+    <div class="card w-full bg-[#202528] border border-primary border-dashed cursor-pointer">
       <div class="card-body">
         <h2 class="card-title">Card2</h2>
         <div class="overflow-x-auto"></div>
@@ -30,7 +26,6 @@
     </div>
     <div
       class="card w-full bg-[#202528] mb-4 md:mb-0 border border-primary border-dashed cursor-pointer"
-      id="card3"
     >
       <div class="card-body">
         <h2 class="card-title">Card3</h2>
@@ -41,111 +36,5 @@
       </div>
     </div>
   </section>
-
-  <!-- add user -->
-  <section id="addUserSection">
-    <form method="POST" novalidate>
-      <div class="card w-full bg-[#202528] shadow-xl">
-        <div class="card-body">
-          {{ form.hidden_tag() }}
-          <div class="form-control w-full max-w-xs">
-            <label class="label">
-              <span class="label-text">Email</span>
-            </label>
-            {{ form.email(class="input input-bordered input-primary w-full max-w-xs", id="email") }}
-            {% if form.email.errors %}
-            <div class="text-error text-sm mt-1">
-              {% for error in form.email.errors %}
-              <p>{{ error }}</p>
-              {% endfor %}
-            </div>
-            {% endif %}
-          </div>
-          <div class="form-control w-full max-w-xs">
-            <label class="label">
-              <span class="label-text">Password</span>
-            </label>
-            {{ form.password(class="input input-bordered input-primary w-full max-w-xs",
-            id="password") }} {% if form.password.errors %}
-            <div class="text-error text-sm mt-1">
-              {% for error in form.password.errors %}
-              <p>{{ error }}</p>
-              {% endfor %}
-            </div>
-            {% endif %}
-          </div>
-          <div class="form-control w-full max-w-xs">
-            <label class="label">
-              <span class="label-text">Confirm password</span>
-            </label>
-            {{ form.confirm_password(class="input input-bordered input-primary w-full max-w-xs",
-            id="confirm_password") }} {% if form.confirm_password.errors %}
-            <div class="text-error text-sm mt-1">
-              {% for error in form.confirm_password.errors %}
-              <p>{{ error }}</p>
-              {% endfor %}
-            </div>
-            {% endif %}
-          </div>
-          <div class="form-control w-full max-w-xs">
-            <label class="label">
-              <span class="label-text">Role</span>
-            </label>
-            {{ form.role(class="select select-bordered select-primary w-full max-w-xs", id="role")
-            }}
-          </div>
-          <div class="mt-6">{{ form.submit(class="btn btn-primary") }}</div>
-        </div>
-      </div>
-    </form>
-  </section>
-
-  <!-- users -->
-  <section id="usersSection">
-    <div class="card w-full bg-[#202528]">
-      <div class="card-body">
-        <h2 class="card-title">Users</h2>
-        <div class="overflow-x-auto">
-          <table class="table">
-            <!-- head -->
-            <thead>
-              <tr>
-                <th></th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Action</th>
-                <!-- Add a new column for actions -->
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Loop through the users and create a row for each -->
-              {% for user in users %}
-              <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ user.email }}</td>
-                <td>{{ user.role }}</td>
-                <td>
-                  <!-- Add a form for the delete button -->
-                  <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}">
-                    <button type="submit" class="btn btn-error text-white">Delete</button>
-                  </form>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        <!-- <div class="card-actions justify-end">
-                <button class="btn btn-primary">Buy Now</button>
-              </div> -->
-      </div>
-    </div>
-  </section>
-
-  <!-- Card3 -->
-  <section id="card3Section">
-    <h1>Card2</h1>
-  </section>
 </main>
-<script src="{{url_for('static', filename='js/dashboardCardsToogle.js')}}"></script>
 {%endblock%}

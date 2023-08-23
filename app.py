@@ -96,41 +96,42 @@ def logout():
     return redirect(url_for('login'))
 
 
-# @app.route("/register", methods=['GET', 'POST'])
-# def register():
-#     form = RegistrationForm()
-#     email = None
-#     password = None
-#     errors = None
+@app.route("/register", methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm()
+    email = None
+    password = None
+    errors = None
 
-#     users = Users.query.all()
+    users = Users.query.all()
 
-#     if form.validate_on_submit():
-#         email = form.email.data
-#         password = form.password.data
-#         selected_role = form.role.data
+    if form.validate_on_submit():
+        email = form.email.data
+        password = form.password.data
+        selected_role = form.role.data
 
-#         try:
-#             existing_user = Users.query.filter_by(email=email).first()
-#             if existing_user:
-#                 print("Email already in use. Please choose another.", 'error')
+        try:
+            existing_user = Users.query.filter_by(email=email).first()
+            if existing_user:
+                print("Email already in use. Please choose another.", 'error')
 
-#             else:
-#                 hashed_password = generate_password_hash(password)
-#                 new_user = Users(
-#                     email=email, password_hash=hashed_password, role=selected_role)
-#                 db.session.add(new_user)
-#                 db.session.commit()
-#                 return redirect(url_for('register'))
-#                 flash("Registration successful. You can now log in.", 'success')
-#         except IntegrityError:
-#             # Handle database integrity errors (e.g., unique constraint violation)
-#             db.session.rollback()  # Rollback the transaction
-#             print("An error occurred during registration. Please try again.", 'error')
-#     else:
-#         errors = form.errors
+            else:
+                hashed_password = generate_password_hash(password)
+                new_user = Users(
+                    email=email, password_hash=hashed_password, role=selected_role)
+                db.session.add(new_user)
+                db.session.commit()
+                flash("Registration successful. You can now log in.", 'success')
+                return redirect(url_for('register'))
 
-#     return render_template('auth/register.html', form=form, email=email, password=password, errors=errors, users=users)
+        except IntegrityError:
+            # Handle database integrity errors (e.g., unique constraint violation)
+            db.session.rollback()  # Rollback the transaction
+            print("An error occurred during registration. Please try again.", 'error')
+    else:
+        errors = form.errors
+
+    return render_template('auth/register.html', form=form, email=email, password=password, errors=errors, users=users)
 
 
 @app.route("/delete_user/<int:user_id>", methods=['POST'])
@@ -152,11 +153,11 @@ def delete_user(user_id):
         db.session.rollback()  # Rollback the transaction
         print("something went wrong when deleting the user")
 
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('register'))
 
 
 # dashboard page
-@app.route("/dashboard", methods=['GET', 'POST'])
+@app.route("/dashboard")
 @login_required
 def dashboard():
     form = RegistrationForm()
@@ -182,15 +183,15 @@ def dashboard():
                     email=email, password_hash=hashed_password, role=selected_role)
                 db.session.add(new_user)
                 db.session.commit()
+                return redirect(url_for('register'))
                 flash("Registration successful. You can now log in.", 'success')
-                return redirect(url_for('dashboard'))
         except IntegrityError:
             # Handle database integrity errors (e.g., unique constraint violation)
             db.session.rollback()  # Rollback the transaction
             print("An error occurred during registration. Please try again.", 'error')
     else:
         errors = form.errors
-
+    users = Users.query.all()
     return render_template('dashboard.html', form=form, email=email, password=password, errors=errors, users=users)
 
 
