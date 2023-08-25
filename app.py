@@ -6,14 +6,21 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from flask_login import UserMixin, login_user, login_required, logout_user, current_user, LoginManager
 from flask_migrate import Migrate
 
 load_dotenv()
 
+# Define the path to the upload folder
+UPLOAD_FOLDER = 'user-file-uploads'
+ALLOWED_EXTENSIONS = {'docx'}
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_URI')
 app.config['SECRET_KEY'] = os.environ.get('FORM_KEY')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 db = SQLAlchemy(app)
 # migrate changes of a schema to the db
@@ -27,29 +34,6 @@ login_manager.login_view = 'login'
 @login_manager.user_loader
 def load_user(user_id):
     return Users.query.get(int(user_id))
-
-
-class Users(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), nullable=False, unique=True)
-    password_hash = db.Column(db.String(128), nullable=False)
-    role = db.Column(db.String(120), default='user')
-    date_added = db.Column(db.DateTime, default=datetime.utcnow)
-
-    @property
-    def password(self):
-        raise AttributeError('password is not a readable attribute!')
-
-    @password.setter
-    def password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def verify_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-    # create a string
-    def __repr__(self):
-        return f'<User {self.email}>'
 
 
 # login page
@@ -163,14 +147,61 @@ def delete_user(user_id):
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template('dashboard.html', users=users)
+    is_admin = False 
+
+    if current_user.role == 'admin':
+        is_admin = True
+
+    return render_template('dashboard.html', is_admin=is_admin)
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 # translation page
-@app.route("/translation")
+@app.route("/translation", methods=['GET', 'POST'])
 @login_required
 def translation():
-    return render_template('translation.html')
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'files' not in request.files:
+            print('No file part')
+            return redirect(request.url)
+        files = request.files.getlist('files')
+
+        try:
+            for file in files:
+                if file.filename == '':
+                    print('No selected file')
+                    continue
+
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    # Create and add a new UploadedFiles record to the database
+                    new_file = UploadedFiles(
+                        file_name=filename,
+                        file_path=os.path.join(app.config['UPLOAD_FOLDER'], filename),
+                        user_id=current_user.id  # Assign the current user's ID
+                    )
+                    db.session.add(new_file)
+
+            db.session.commit()  # Commit changes to the database
+            print('Files uploaded successfully', 'success')
+        except Exception as e:
+            db.session.rollback()  # Rollback the transaction in case of an exception
+            print(f'An error occurred: {str(e)}', 'error')
+
+        return redirect(request.url)
+
+    # Fetch the user's files from the db
+    user_files = UploadedFiles.query.filter_by(user_id=current_user.id).all()
+
+    return render_template('translation.html', user_files=user_files)
+
 
 
 # invalid url
@@ -183,3 +214,40 @@ def page_not_found(error):
 @app.errorhandler(500)
 def special_exception_handler(error):
     return render_template('errors/500.html'), 500
+
+
+#models
+class Users(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), nullable=False, unique=True)
+    password_hash = db.Column(db.String(128), nullable=False)
+    role = db.Column(db.String(120), default='user')
+    date_added = db.Column(db.DateTime, default=datetime.utcnow)
+    files = db.relationship('UploadedFiles', backref='user', lazy=True)
+
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute!')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    # create a string
+    def __repr__(self):
+        return f'<User {self.email}>'
+
+class UploadedFiles(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    file_name = db.Column(db.String(120), nullable=False)
+    file_path = db.Column(db.String(120), nullable=False)
+    date_added = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+
+    # create a string
+    def __repr__(self):
+        return f'<UploadedFiles {self.file_name}>'

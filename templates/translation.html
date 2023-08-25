@@ -1,13 +1,52 @@
 {%extends 'base.html'%} {%block content%}
 <main class="container mx-auto px-4">
-  <div class="card w-full bg-[#202528]">
+  <form
+    action="{{ url_for('translation') }}"
+    method="POST"
+    enctype=multipart/form-data
+  >
+    <div class="card w-full bg-[#202528]">
+      <div class="card-body">
+        <!-- document language translate from-->
+        <div class="form-control w-full max-w-xs">
+          <h2 class="card-title">File upload</h2>
+          <label class="label pl-0">
+            <span class="label-text">Upload files</span>
+          </label>
+          <input
+            name="files"
+            multiple
+            type="file"
+            class="file-input file-input-bordered file-input-primary w-full max-w-xs"
+          />
+        </div>
+        <div class="card-actions justify-start">
+          <button type="submit" value="Upload" class="btn btn-primary">
+            Upload file(s)
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <h1>Files from the db from this user only</h1>
+  <ul>
+    {% for file in user_files %}
+    <li>{{ file.file_name }}</li>
+    {% endfor %}
+  </ul>
+
+  <div class="card w-full bg-[#202528] hidden">
     <div class="card-body">
       <!-- document language translate from-->
       <div class="form-control w-full max-w-xs">
         <label class="label">
           <span class="label-text">Select document language</span>
         </label>
-        <select class="select select-bordered select-primary" id="languageToTranslateFrom">
+        <select
+          class="select select-bordered select-primary"
+          id="languageToTranslateFrom"
+        >
           <option>Star Wars</option>
           <option>Harry Potter</option>
           <option>Lord of the Rings</option>
@@ -20,7 +59,10 @@
         <label class="label">
           <span class="label-text">Select languages to translate to</span>
         </label>
-        <select class="select select-bordered select-primary" id="languageToTranslateTo">
+        <select
+          class="select select-bordered select-primary"
+          id="languageToTranslateTo"
+        >
           <option>Star Wars</option>
           <option>Harry Potter</option>
           <option>Lord of the Rings</option>
@@ -36,11 +78,6 @@
           type="file"
           class="file-input file-input-bordered file-input-primary w-full max-w-xs"
         />
-      </div>
-      <p id="selectedValue">Selected Value:</p>
-
-      <div id="selectedValues">
-        <p>selectValues:</p>
       </div>
       <!-- <div class="card-actions justify-end">
           <button class="btn btn-primary">Buy Now</button>

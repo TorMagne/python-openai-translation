@@ -1,5 +1,6 @@
 {%extends 'base.html'%} {%block content%}
 <main class="container mx-auto px-4">
+  {%if is_admin%}
   <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-0 md:mb-4">
     <a href="{{ url_for('register')}}">
       <div class="card w-full bg-[#202528] border border-primary border-dashed cursor-pointer">
@@ -36,5 +37,6 @@
       </div>
     </div>
   </section>
+  {%endif%}
 </main>
 {%endblock%}
