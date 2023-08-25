@@ -32,7 +32,16 @@
   <h1>Files from the db from this user only</h1>
   <ul>
     {% for file in user_files %}
-    <li>{{ file.file_name }}</li>
+    <li class="flex items-center">
+      <span class="material-icons-sharp">
+      description
+      </span>
+      {{ file.file_name }}
+      <form method="POST" action="{{ url_for('delete_file', file_id=file.id) }}">
+        <button type="submit" class="btn btn-error text-white btn-sm">Delete</button>
+      </form>
+
+    </li>
     {% endfor %}
   </ul>
 

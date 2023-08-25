@@ -122,7 +122,7 @@ def register():
 
 
 @app.route("/delete_user/<int:user_id>", methods=['POST'])
-# @login_required
+@login_required
 def delete_user(user_id):
     try:
         # get user from db
@@ -141,6 +141,33 @@ def delete_user(user_id):
         flash("something went wrong when deleting the user", category='error')
 
     return redirect(url_for('register'))
+
+
+@app.route("/delete_file/<int:file_id>", methods=['POST'])
+@login_required
+def delete_file(file_id):
+    try:
+        # get file from db
+        file = UploadedFiles.query.get(file_id)
+        if file:
+            #delete file from the server
+            if os.path.exists(file.file_path):
+                os.remove(file.file_path)
+
+            # delete the file from the file system
+            # delete the file from db
+            db.session.delete(file)
+            db.session.commit()
+            flash("file deleted", category='error')
+        else:
+            flash("something went wrong")
+
+    except IntegrityError:
+        db.session.rollback()
+        flash("something went wrong when deleting the file", category='error')
+
+    return redirect(url_for('translation'))
+
 
 
 # dashboard page
@@ -179,12 +206,17 @@ def translation():
 
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    user_upload_folder = os.path.join(app.config['UPLOAD_FOLDER'], str(current_user.id))
+
+                    #ensure the user's upload folder exists
+                    os.makedirs(user_upload_folder, exist_ok=True)
+
+                    file.save(os.path.join(user_upload_folder, filename))
 
                     # Create and add a new UploadedFiles record to the database
                     new_file = UploadedFiles(
                         file_name=filename,
-                        file_path=os.path.join(app.config['UPLOAD_FOLDER'], filename),
+                        file_path=os.path.join(user_upload_folder, filename),
                         user_id=current_user.id  # Assign the current user's ID
                     )
                     db.session.add(new_file)
