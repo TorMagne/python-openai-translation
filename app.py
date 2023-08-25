@@ -124,6 +124,10 @@ def register():
 @app.route("/delete_user/<int:user_id>", methods=['POST'])
 @login_required
 def delete_user(user_id):
+    #check if the user is an admin
+    if current_user.role != 'admin':
+        flash("You are not authorized to delete users", category='error')
+        return redirect(url_for('register'))
     try:
         # get user from db
         user = Users.query.get(user_id)
