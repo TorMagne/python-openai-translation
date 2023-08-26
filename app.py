@@ -9,18 +9,21 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_login import UserMixin, login_user, login_required, logout_user, current_user, LoginManager
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 
 load_dotenv()
+
 
 # Define the path to the upload folder
 UPLOAD_FOLDER = 'user-file-uploads'
 ALLOWED_EXTENSIONS = {'docx'}
 
+csrf = CSRFProtect()
 app = Flask(__name__)
+csrf.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_URI')
 app.config['SECRET_KEY'] = os.environ.get('FORM_KEY')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 
 db = SQLAlchemy(app)
 # migrate changes of a schema to the db
@@ -28,6 +31,7 @@ migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+
 login_manager.login_view = 'login'
 
 
@@ -151,26 +155,38 @@ def delete_user(user_id):
 @login_required
 def delete_file(file_id):
     try:
+         # Print the CSRF token to debug
+        csrf_token = request.form.get('csrf_token')
+        print(f'CSRF Token: {csrf_token}')
+
         # get file from db
         file = UploadedFiles.query.get(file_id)
-        if file:
-            #delete file from the server
+
+        # check if the file exists and belongs to the user
+        if file and file.user_id == current_user.id:
+            # Delete file from the server
             if os.path.exists(file.file_path):
                 os.remove(file.file_path)
 
-            # delete the file from the file system
-            # delete the file from db
+            # Delete the file from the database
             db.session.delete(file)
             db.session.commit()
-            flash("file deleted", category='error')
+            flash("File deleted", category='warning')
+
+            # Check if the folder is empty and delete it
+            folder_path = os.path.dirname(file.file_path)
+            if not os.listdir(folder_path):
+                os.rmdir(folder_path)
+
         else:
-            flash("something went wrong")
+            flash("Something went wrong")
 
     except IntegrityError:
         db.session.rollback()
-        flash("something went wrong when deleting the file", category='error')
+        flash("Something went wrong when deleting the file", category='error')
 
     return redirect(url_for('translation'))
+
 
 
 
@@ -191,10 +207,42 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+@app.route("/translate_files", methods=['POST'])
+@login_required
+def translate_files():
+    # Get the CSRF token
+    csrf_token = request.form.get('csrf_token')
+
+    # Get the selected file for translation
+    selected_file_id = request.form.get('selected_file')
+
+    # Get the selected languages for translation
+    language_from = request.form.getlist('languageToTranslatefrom')
+    language_to = request.form.getlist('languagesToTranslateTo')  # If multiple languages are selected, use getlist
+
+    # Print the received values for debugging
+    print(f'CSRF Token: {csrf_token}')
+    print(f'Selected File ID: {selected_file_id}')
+    print(f'Language From: {language_from}')
+    print(f'Languages To: {language_to}')
+
+    # Fetch the file from the database based on selected_file_id
+    # Perform translation logic here
+
+    return redirect(url_for('translation'))
+
+
+
 # translation page
 @app.route("/translation", methods=['GET', 'POST'])
 @login_required
 def translation():
+    languages_to_translate_from = ['Norwegian', 'English', 'Spanish', 'French', 'German', 'Chinese (Simplified)', 'Chinese (Traditional)', 'Japanese', 'Korean', 'Russian', 'Arabic']
+    languages_to_translate_to = ["English", "Spanish", "French", "German",
+    "Chinese (Simplified)", "Chinese (Traditional)", "Japanese", "Korean", "Russian", "Arabic", "Italian", "Portuguese", "Dutch", "Swedish", "Norwegian", "Danish", "Finnish", "Greek", "Turkish", "Hindi"
+]
+
+    # check if the user is an admin
     if request.method == 'POST':
         # check if the post request has the file part
         if 'files' not in request.files:
@@ -205,7 +253,7 @@ def translation():
         try:
             for file in files:
                 if file.filename == '':
-                    print('No selected file')
+                    flash('No selected file', 'error')
                     continue
 
                 if file and allowed_file(file.filename):
@@ -224,19 +272,16 @@ def translation():
                         user_id=current_user.id  # Assign the current user's ID
                     )
                     db.session.add(new_file)
-
-            db.session.commit()  # Commit changes to the database
-            print('Files uploaded successfully', 'success')
+                    db.session.commit()  # Commit changes to the database
+                    flash('File(s) uploaded successfully', category='success')
         except Exception as e:
             db.session.rollback()  # Rollback the transaction in case of an exception
             print(f'An error occurred: {str(e)}', 'error')
 
-        return redirect(request.url)
-
     # Fetch the user's files from the db
     user_files = UploadedFiles.query.filter_by(user_id=current_user.id).all()
 
-    return render_template('translation.html', user_files=user_files)
+    return render_template('translation.html', user_files=user_files, languages_to_translate_to=languages_to_translate_to, languages_to_translate_from=languages_to_translate_from)
 
 
 

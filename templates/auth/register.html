@@ -1,9 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp"
+      rel="stylesheet"
+    />
     <!-- google font Roboto -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,15 +15,19 @@
       rel="stylesheet"
     />
     <title>Document</title>
-    <link href="{{ url_for('static', filename='css/tailwind-output.css')}}" rel="stylesheet" />
+    <link
+      href="{{ url_for('static', filename='css/tailwind-output.css')}}"
+      rel="stylesheet"
+    />
   </head>
   <body class="bg-[#181a1e] h-screen grid place-content-center font-Roboto">
     <!-- {% with messages = get_flashed_messages() %} {% for message in messages %}
     <div class="alert alert-primary" role="alert">{{ message }}</div>
     {% endfor %} {% endwith %} -->
 
-    {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for
-    category, message in messages %} {% if category == 'error' %}
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %} {% for category, message in messages %} {% if category ==
+    'error' %}
     <div class="alert alert-error absolute top-0 rounded-none">
       <span> {{ message }} </span>
     </div>
@@ -39,8 +46,8 @@
               <label class="label">
                 <span class="label-text">Email</span>
               </label>
-              {{ form.email(class="input input-bordered input-primary w-full max-w-xs", id="email")
-              }} {% if form.email.errors %}
+              {{ form.email(class="input input-bordered input-primary w-full
+              max-w-xs", id="email") }} {% if form.email.errors %}
               <div class="text-error text-sm mt-1">
                 {% for error in form.email.errors %}
                 <p>{{ error }}</p>
@@ -52,8 +59,8 @@
               <label class="label">
                 <span class="label-text">Password</span>
               </label>
-              {{ form.password(class="input input-bordered input-primary w-full max-w-xs",
-              id="password") }} {% if form.password.errors %}
+              {{ form.password(class="input input-bordered input-primary w-full
+              max-w-xs", id="password") }} {% if form.password.errors %}
               <div class="text-error text-sm mt-1">
                 {% for error in form.password.errors %}
                 <p>{{ error }}</p>
@@ -65,8 +72,9 @@
               <label class="label">
                 <span class="label-text">Confirm password</span>
               </label>
-              {{ form.confirm_password(class="input input-bordered input-primary w-full max-w-xs",
-              id="confirm_password") }} {% if form.confirm_password.errors %}
+              {{ form.confirm_password(class="input input-bordered input-primary
+              w-full max-w-xs", id="confirm_password") }} {% if
+              form.confirm_password.errors %}
               <div class="text-error text-sm mt-1">
                 {% for error in form.confirm_password.errors %}
                 <p>{{ error }}</p>
@@ -78,8 +86,8 @@
               <label class="label">
                 <span class="label-text">Role</span>
               </label>
-              {{ form.role(class="select select-bordered select-primary w-full max-w-xs", id="role")
-              }}
+              {{ form.role(class="select select-bordered select-primary w-full
+              max-w-xs", id="role") }}
             </div>
             <div class="mt-6">{{ form.submit(class="btn btn-primary") }}</div>
           </div>
@@ -106,8 +114,13 @@
               <td>{{ user.role }}</td>
               <td>
                 <!-- Add a form for the delete button -->
-                <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}">
-                  <button type="submit" class="btn btn-error text-white">Delete</button>
+                <form
+                  method="POST"
+                  action="{{ url_for('delete_user', user_id=user.id) }}"
+                >
+                  <button type="submit" class="btn btn-error text-white">
+                    Delete
+                  </button>
                 </form>
               </td>
             </tr>

@@ -1,9 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html data-theme="mytheme" lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp"
+      rel="stylesheet"
+    />
     <!-- google font Roboto -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,7 +15,10 @@
       rel="stylesheet"
     />
     <title>AdminPanel</title>
-    <link href="{{ url_for('static', filename='css/tailwind-output.css')}}" rel="stylesheet" />
+    <link
+      href="{{ url_for('static', filename='css/tailwind-output.css')}}"
+      rel="stylesheet"
+    />
   </head>
   <body class="font-Roboto bg-[#181a1e]">
     <!-- navbar -->
@@ -63,12 +69,42 @@
           </li>
           <li>
             <a href="{{url_for('translation')}}" class="md:text-lg"
-              ><span class="material-icons-sharp"> translate </span>Translation</a
+              ><span class="material-icons-sharp"> translate </span>Translation
+              & files</a
             >
           </li>
           <a class="btn btn-secondary" href="{{url_for('logout')}}">Logut</a>
         </ul>
       </div>
     </div>
+
+    <!-- Alert -->
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %} {% for category, message in messages %} {% if category ==
+    'error' %}
+    <div
+      class="alert alert-error absolute bottom-0 rounded-none"
+      id="error-alert"
+    >
+      <span> {{ message }} </span>
+    </div>
+    {% elif category == 'success' %}
+    <div
+      class="alert alert-success absolute bottom-0 rounded-none"
+      id="success-alert"
+    >
+      <span> {{ message }} </span>
+    </div>
+    {% elif category == 'warning' %}
+    <div
+      class="alert alert-warning absolute bottom-0 rounded-none"
+      id="warning-alert"
+    >
+      <span> {{ message }} </span>
+    </div>
+    {% endif %} {% endfor %} {% endif %} {% endwith %}
+
+    <!-- Alert -->
+    <script src="{{ url_for('static', filename='js/timeOut.js') }}"></script>
   </body>
 </html>

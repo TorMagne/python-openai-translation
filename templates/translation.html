@@ -1,96 +1,185 @@
 {%extends 'base.html'%} {%block content%}
 <main class="container mx-auto px-4">
-  <form
-    action="{{ url_for('translation') }}"
-    method="POST"
-    enctype=multipart/form-data
-  >
+  <section>
     <div class="card w-full bg-[#202528]">
       <div class="card-body">
-        <!-- document language translate from-->
-        <div class="form-control w-full max-w-xs">
-          <h2 class="card-title">File upload</h2>
-          <label class="label pl-0">
-            <span class="label-text">Upload files</span>
-          </label>
-          <input
-            name="files"
-            multiple
-            type="file"
-            class="file-input file-input-bordered file-input-primary w-full max-w-xs"
-          />
-        </div>
-        <div class="card-actions justify-start">
-          <button type="submit" value="Upload" class="btn btn-primary">
-            Upload file(s)
-          </button>
+        <form
+          action="{{ url_for('translation') }}"
+          method="POST"
+          enctype="multipart/form-data"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <!-- document language translate from-->
+          <div class="form-control w-full max-w-xs">
+            <h2 class="card-title">File upload</h2>
+            <label class="label pl-0">
+              <span class="label-text">Upload files</span>
+            </label>
+            <input
+              name="files"
+              multiple
+              type="file"
+              class="file-input file-input-bordered file-input-primary w-full max-w-xs"
+            />
+          </div>
+          <div class="card-actions justify-start mt-4">
+            <button type="submit" value="Upload" class="btn btn-primary">
+              Upload file(s)
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="md:flex gap-4">
+    <div class="card w-full bg-[#202528] mt-4">
+      <div class="card w-full bg-[#202528]">
+        <div class="card-body">
+          <h1 class="card-title">Uploaded files</h1>
+          <div class="overflow-x-auto">
+            <table class="table">
+              <!-- head -->
+              <thead>
+                <tr>
+                  <th>File Name</th>
+                  <th>Date added</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Loop through the users and create a row for each -->
+                {% for file in user_files %}
+                <tr>
+                  <td>{{ file.file_name }}</td>
+                  <td>{{ file.date_added.strftime('%Y-%m-%d') }}</td>
+                  <td>
+                    <!-- Add a form for the delete button -->
+                    <form
+                      method="POST"
+                      action="{{ url_for('delete_file', file_id=file.id) }}"
+                    >
+                      <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token() }}"
+                      />
+                      <button
+                        type="submit"
+                        class="btn btn-error text-white btn-sm"
+                      >
+                        Delete
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
-  </form>
 
-  <h1>Files from the db from this user only</h1>
-  <ul>
-    {% for file in user_files %}
-    <li class="flex items-center">
-      <span class="material-icons-sharp">
-      description
-      </span>
-      {{ file.file_name }}
-      <form method="POST" action="{{ url_for('delete_file', file_id=file.id) }}">
-        <button type="submit" class="btn btn-error text-white btn-sm">Delete</button>
-      </form>
+    <div class="card w-full bg-[#202528] mt-4">
+      <div class="card-body">
+        <h1 class="card-title">Translated files</h1>
+        <div class="overflow-x-auto">
+          <table class="table">
+            <!-- head -->
+            <thead>
+              <tr>
+                <th>File Name</th>
+                <th>Date added</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Loop through the users and create a row for each -->
+              {% for file in user_files %}
+              <tr>
+                <td>{{ file.file_name }}</td>
+                <td>{{ file.date_added.strftime('%Y-%m-%d') }}</td>
+                <td>
+                  <!-- Add a form for the delete button -->
+                  <form
+                    method="POST"
+                    action="{{ url_for('delete_file', file_id=file.id) }}"
+                  >
+                    <input
+                      type="hidden"
+                      name="csrf_token"
+                      value="{{ csrf_token() }}"
+                    />
+                    <button
+                      type="submit"
+                      class="btn btn-error text-white btn-sm"
+                    >
+                      Delete
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    </li>
-    {% endfor %}
-  </ul>
-
-  <div class="card w-full bg-[#202528] hidden">
+  <div class="card w-full bg-[#202528] mt-4">
     <div class="card-body">
-      <!-- document language translate from-->
-      <div class="form-control w-full max-w-xs">
-        <label class="label">
-          <span class="label-text">Select document language</span>
-        </label>
-        <select
-          class="select select-bordered select-primary"
-          id="languageToTranslateFrom"
-        >
-          <option>Star Wars</option>
-          <option>Harry Potter</option>
-          <option>Lord of the Rings</option>
-          <option>Planet of the Apes</option>
-          <option>Star Trek</option>
-        </select>
-      </div>
-      <!-- document language translate to-->
-      <div class="form-control w-full max-w-xs">
-        <label class="label">
-          <span class="label-text">Select languages to translate to</span>
-        </label>
-        <select
-          class="select select-bordered select-primary"
-          id="languageToTranslateTo"
-        >
-          <option>Star Wars</option>
-          <option>Harry Potter</option>
-          <option>Lord of the Rings</option>
-          <option>Planet of the Apes</option>
-          <option>Star Trek</option>
-        </select>
-      </div>
-      <div class="form-control w-full max-w-xs">
-        <label class="label">
-          <span class="label-text">Pick a file</span>
-        </label>
-        <input
-          type="file"
-          class="file-input file-input-bordered file-input-primary w-full max-w-xs"
-        />
-      </div>
-      <!-- <div class="card-actions justify-end">
-          <button class="btn btn-primary">Buy Now</button>
-        </div> -->
+      <form method="POST" action="{{ url_for('translate_files') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <!-- select document for translation-->
+        <div class="form-control w-full max-w-xs">
+          <label class="label">
+            <span class="label-text">Select document language</span>
+          </label>
+          <select
+            name="selected_file"
+            class="select select-bordered select-primary"
+          >
+            {% for file in user_files %}
+            <option value="{{ file.id }}">{{ file.file_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <!-- document language translate from-->
+        <div class="form-control w-full max-w-xs">
+          <label class="label">
+            <span class="label-text">Select document language</span>
+          </label>
+          <select
+            class="select select-bordered select-primary"
+            id="languageToTranslatefrom"
+            name="languageToTranslatefrom"
+          >
+            {% for language in languages_to_translate_from %}
+            <option value="{{language}}">{{ language }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <!-- document language translate to-->
+        <div class="form-control w-full max-w-xs">
+          <label class="label">
+            <span class="label-text">Select languages to translate to</span>
+          </label>
+          <select
+            class="select select-bordered select-primary"
+            id="languagesToTranslateTo"
+            name="languagesToTranslateTo"
+          >
+            {% for language in languages_to_translate_to %}
+            <option value="{{language}}">{{ language }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="card-actions justify-start mt-3">
+          <button class="btn btn-primary">Translate</button>
+        </div>
+      </form>
     </div>
   </div>
 </main>
