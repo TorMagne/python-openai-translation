@@ -315,7 +315,6 @@ def translation():
     "Chinese (Simplified)", "Chinese (Traditional)", "Japanese", "Korean", "Russian", "Arabic", "Italian", "Portuguese", "Dutch", "Swedish", "Norwegian", "Danish", "Finnish", "Greek", "Turkish", "Hindi"
 ]
 
-    # check if the user is an admin
     if request.method == 'POST':
         # check if the post request has the file part
         if 'files' not in request.files:
@@ -347,6 +346,9 @@ def translation():
                     db.session.add(new_file)
                     db.session.commit()  # Commit changes to the database
                     flash('File(s) uploaded successfully', category='success')
+
+                else:
+                    flash('Invalid file type. Only .docx files are allowed', 'error')
         except Exception as e:
             db.session.rollback()  # Rollback the transaction in case of an exception
             print(f'An error occurred: {str(e)}', 'error')
