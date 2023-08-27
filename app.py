@@ -1,5 +1,5 @@
 import os
-from flask import Flask, url_for, render_template, flash, redirect, request
+from flask import Flask, url_for, render_template, flash, redirect, request, send_from_directory
 from dotenv import load_dotenv
 from webforms import LoginForm, RegistrationForm
 from flask_sqlalchemy import SQLAlchemy
@@ -10,12 +10,14 @@ from werkzeug.utils import secure_filename
 from flask_login import UserMixin, login_user, login_required, logout_user, current_user, LoginManager
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
+from docx import Document
+from openai_functions import translation_openai
 
 load_dotenv()
 
-
 # Define the path to the upload folder
-UPLOAD_FOLDER = 'user-file-uploads'
+UPLOAD_FOLDER = 'user-files'
+TRANSLATED_FILES_FOLDER = 'translated-files'
 ALLOWED_EXTENSIONS = {'docx'}
 
 csrf = CSRFProtect()
@@ -155,29 +157,39 @@ def delete_user(user_id):
 @login_required
 def delete_file(file_id):
     try:
-         # Print the CSRF token to debug
-        csrf_token = request.form.get('csrf_token')
-        print(f'CSRF Token: {csrf_token}')
+        # Get the file from both UploadedFiles and TranslatedFiles tables
+        uploaded_file = UploadedFiles.query.get(file_id)
+        translated_file = TranslatedFiles.query.get(file_id)
 
-        # get file from db
-        file = UploadedFiles.query.get(file_id)
+        # Check if the file exists and belongs to the user in either table
+        if uploaded_file and uploaded_file.user_id == current_user.id:
+            # Delete the file from the server
+            if os.path.exists(uploaded_file.file_path):
+                os.remove(uploaded_file.file_path)
 
-        # check if the file exists and belongs to the user
-        if file and file.user_id == current_user.id:
-            # Delete file from the server
-            if os.path.exists(file.file_path):
-                os.remove(file.file_path)
-
-            # Delete the file from the database
-            db.session.delete(file)
+            # Delete the file from the UploadedFiles table
+            db.session.delete(uploaded_file)
             db.session.commit()
             flash("File deleted", category='warning')
 
             # Check if the folder is empty and delete it
-            folder_path = os.path.dirname(file.file_path)
+            folder_path = os.path.dirname(uploaded_file.file_path)
             if not os.listdir(folder_path):
                 os.rmdir(folder_path)
+        elif translated_file and translated_file.user_id == current_user.id:
+            # Delete the file from the server
+            if os.path.exists(translated_file.file_path):
+                os.remove(translated_file.file_path)
 
+            # Delete the file from the TranslatedFiles table
+            db.session.delete(translated_file)
+            db.session.commit()
+            flash("File deleted", category='warning')
+
+            # Check if the folder is empty and delete it
+            folder_path = os.path.dirname(translated_file.file_path)
+            if not os.listdir(folder_path):
+                os.rmdir(folder_path)
         else:
             flash("Something went wrong")
 
@@ -186,6 +198,7 @@ def delete_file(file_id):
         flash("Something went wrong when deleting the file", category='error')
 
     return redirect(url_for('translation'))
+
 
 
 
@@ -202,6 +215,28 @@ def dashboard():
     return render_template('dashboard.html', is_admin=is_admin)
 
 
+@app.route("/download_file/<int:file_id>", methods=['GET'])
+@login_required
+def download_file(file_id):
+    try:
+        # Fetch the file from the database based on file_id
+        file = TranslatedFiles.query.get(file_id)
+
+        if file and file.user_id == current_user.id:
+            # Download the file from the server
+            return send_from_directory(os.path.dirname(file.file_path), file.file_name, as_attachment=True)
+
+        else:
+            flash("File not found or you don't have permission to download it", 'error')
+    except Exception as e:
+        # Handle any exceptions that may occur during download
+        print(f"Error downloading file: {e}")
+        flash("An error occurred during download", 'succes')
+
+    # Redirect to a relevant URL after processing
+    return redirect(url_for('translation'))
+
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -210,28 +245,66 @@ def allowed_file(filename):
 @app.route("/translate_files", methods=['POST'])
 @login_required
 def translate_files():
-    # Get the CSRF token
-    csrf_token = request.form.get('csrf_token')
+    try:
+        # Get the selected file for translation
+        selected_file_id = request.form.get('selected_file')
 
-    # Get the selected file for translation
-    selected_file_id = request.form.get('selected_file')
+        # Get the selected languages for translation
+        language_from = request.form.getlist('languageToTranslatefrom')
+        language_to = request.form.getlist('languagesToTranslateTo')  # If multiple languages are selected, use getlist
 
-    # Get the selected languages for translation
-    language_from = request.form.getlist('languageToTranslatefrom')
-    language_to = request.form.getlist('languagesToTranslateTo')  # If multiple languages are selected, use getlist
+        print(f'Selected File ID: {selected_file_id}')
+        print(f'Language From: {language_from}')
+        print(f'Languages To: {language_to}')
 
-    # Print the received values for debugging
-    print(f'CSRF Token: {csrf_token}')
-    print(f'Selected File ID: {selected_file_id}')
-    print(f'Language From: {language_from}')
-    print(f'Languages To: {language_to}')
+        # Fetch the file from the database based on selected_file_id
+        file = UploadedFiles.query.get(selected_file_id)
 
-    # Fetch the file from the database based on selected_file_id
-    # Perform translation logic here
+        if file:
+            # Use python-docx to read the contents of the .docx file
+            doc = Document(os.path.join(file.file_path))
+            file_contents = '\n'.join([para.text for para in doc.paragraphs])
 
+            # Translate the text using OpenAI
+            translated_text = translation_openai(file_contents, language_from, language_to)
+            print(f'Translated Text: {translated_text}')
+
+            # Define a folder path for translated files
+            translated_folder_path = os.path.join(app.config['UPLOAD_FOLDER'], TRANSLATED_FILES_FOLDER, str(current_user.id))
+            os.makedirs(translated_folder_path, exist_ok=True)
+
+            # Construct the translated file name based on the original filename and target language
+            original_filename = file.file_name
+            target_language = language_to[0]  # Assuming only one target language is selected
+            translated_file_name = f"{original_filename.split('.')[0]}_{target_language}.docx"
+
+            # Define the file path for the translated file
+            translated_file_path = os.path.join(translated_folder_path, translated_file_name)
+
+            # Create a new .docx document
+            doc = Document()
+            doc.add_paragraph(translated_text)
+
+            # Save the document
+            doc.save(translated_file_path)
+
+            if translated_file_name and translated_file_path:
+                # Create a new record in the TranslatedFiles table
+                new_translated_file = TranslatedFiles(
+                    file_name=translated_file_name,
+                    file_path=translated_file_path,
+                    user_id=current_user.id
+                )
+                db.session.add(new_translated_file)
+                db.session.commit()
+                flash("File translated and saved successfully", category='success')
+
+    except Exception as e:
+        # Handle any exceptions that may occur during translation
+        print(f"Error translating file: {e}")
+
+    # Redirect to a relevant URL after processing
     return redirect(url_for('translation'))
-
-
 
 # translation page
 @app.route("/translation", methods=['GET', 'POST'])
@@ -280,8 +353,9 @@ def translation():
 
     # Fetch the user's files from the db
     user_files = UploadedFiles.query.filter_by(user_id=current_user.id).all()
+    user_translated_files = TranslatedFiles.query.filter_by(user_id=current_user.id).all()
 
-    return render_template('translation.html', user_files=user_files, languages_to_translate_to=languages_to_translate_to, languages_to_translate_from=languages_to_translate_from)
+    return render_template('translation.html', user_files=user_files, user_translated_files=user_translated_files, languages_to_translate_to=languages_to_translate_to, languages_to_translate_from=languages_to_translate_from)
 
 
 
@@ -305,6 +379,7 @@ class Users(db.Model, UserMixin):
     role = db.Column(db.String(120), default='user')
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     files = db.relationship('UploadedFiles', backref='user', lazy=True)
+    translated_files = db.relationship('TranslatedFiles', backref='user', lazy=True)
 
     @property
     def password(self):
@@ -332,3 +407,14 @@ class UploadedFiles(db.Model):
     # create a string
     def __repr__(self):
         return f'<UploadedFiles {self.file_name}>'
+
+class TranslatedFiles(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    file_name = db.Column(db.String(120), nullable=False)
+    file_path = db.Column(db.String(120), nullable=False)
+    date_added = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    #creatre a string
+    def __repr__(self):
+        return f'<TranslatedFiles {self.file_name}>'

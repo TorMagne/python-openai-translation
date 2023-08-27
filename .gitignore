@@ -15,4 +15,4 @@ build/
 *.egg-info/
 
 node_modules
-user-file-uploads
+user-files
